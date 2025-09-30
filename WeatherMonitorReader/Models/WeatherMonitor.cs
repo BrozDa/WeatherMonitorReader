@@ -19,6 +19,7 @@
         public string R { get; set; } = string.Empty;
         public string Bip { get; set; } = string.Empty;
 
-        public List<WeatherMonitorSensor> Sensors { get; set; } = null!;
+        public IEnumerable<WeatherMonitorSensor> Sensors { get; set; } = null!;
+        public IEnumerable<WeatherMonitorSnapshot> Snapshots { get; set; } = null!;
     }
 }
