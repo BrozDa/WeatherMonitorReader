@@ -1,21 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using System.Text.Json.Serialization;
-using System.Xml;
-using WeatherMonitorReader.Persistence;
+﻿using WeatherMonitorReader.Domain.Interfaces;
+using WeatherMonitorReader.Domain.Services;
+using WeatherMonitorReader.Infrastructure.Xml;
 
 namespace WeatherMonitorReader
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            
 
-            string json = JsonConvert.SerializeXmlNode(document);
+            XmlFetcher fetcher = new();
+            XmlToJsonConverter converter = new();
 
-            Console.WriteLine(json);
+            WeatherMonitorReadingService svc = new(fetcher, converter);
+
+            await svc.FetchDataAsync();
+
+
 
         }
     }
