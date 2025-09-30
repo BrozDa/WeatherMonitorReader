@@ -1,5 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using System.Text.Json.Serialization;
+using System.Xml;
 using WeatherMonitorReader.Persistence;
 
 namespace WeatherMonitorReader
@@ -8,27 +11,12 @@ namespace WeatherMonitorReader
     {
         static void Main(string[] args)
         {
-
-           
-
-           IConfigurationRoot config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .AddEnvironmentVariables()
-                .Build();
-
-
-            var connectionString = config.GetConnectionString("DefaultConnection");
-            var optionBuilder = new DbContextOptionsBuilder<WeatherMonitorContext>()
-                .UseSqlServer(connectionString);
-
-            Console.WriteLine(connectionString);
-
-            WeatherMonitorContext context = new WeatherMonitorContext(optionBuilder.Options);
-            context.Database.EnsureDeleted();
-            context.Database.EnsureCreated();
-            context.Database.Migrate();
             
+
+            string json = JsonConvert.SerializeXmlNode(document);
+
+            Console.WriteLine(json);
+
         }
     }
 }
