@@ -3,7 +3,7 @@ using WeatherMonitorReader.Models;
 
 namespace WeatherMonitorReader.Persistence
 {
-    internal class WeatherMonitorContext(DbContextOptions options) :DbContext(options)
+    internal class WeatherMonitorContext(DbContextOptions<WeatherMonitorContext> options) :DbContext(options)
     {
         public DbSet<WeatherMonitor> WeatherMonitors { get; set; } = null!;
         public DbSet<WeatherMonitorSensor> WeatherMonitorSensors { get; set; } = null!;
@@ -15,43 +15,47 @@ namespace WeatherMonitorReader.Persistence
         {
             //1-to-m between Monitor and Sensors
             modelBuilder.Entity<WeatherMonitor>()
-                .HasMany<WeatherMonitorSensor>()
+                .HasMany(m => m.Sensors)
                 .WithOne(s => s.WeatherMonitor)
                 .HasForeignKey(fk => fk.WeatherMonitorId);
 
             //1-to-m between Monitor and SnapShots
             modelBuilder.Entity<WeatherMonitor>()
-                .HasMany<WeatherMonitorSnapshot>()
+                .HasMany(m => m.Snapshots)
                 .WithOne(ss => ss.WeatherMonitor)
                 .HasForeignKey(fk => fk.WeatherMonitorId);
 
             //1-to-m between Sensor and SensorReading
             modelBuilder.Entity<WeatherMonitorSensor>()
-                .HasMany<WeatherMonitorSensorReading>()
+                .HasMany(s => s.SensorReadings)
                 .WithOne(sr => sr.Sensor)
-                .HasForeignKey(fk => fk.SensorId);
+                .HasForeignKey(fk => fk.SensorId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             //1-to-m between Sensor and MinMax
             modelBuilder.Entity<WeatherMonitorSensor>()
-                .HasMany<WeatherMonitorSnapshotMinMax>()
-                .WithOne(ss => ss.Sensor)
-                .HasForeignKey(fk => fk.SensorId);
+                .HasMany(s => s.SensorMinMaxes)
+                .WithOne(mm => mm.Sensor)
+                .HasForeignKey(fk => fk.SensorId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             //1-to-m between Snapshot and SensorReading
             modelBuilder.Entity<WeatherMonitorSnapshot>()
-                .HasMany<WeatherMonitorSensorReading>()
+                .HasMany(ss => ss.SensorReadings)
                 .WithOne(sr => sr.Snapshot)
-                .HasForeignKey(fk => fk.SnapshotId);
+                .HasForeignKey(fk => fk.SnapshotId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             //1-to-m between Snapshot and MinMax
             modelBuilder.Entity<WeatherMonitorSnapshot>()
-                .HasMany<WeatherMonitorSnapshotMinMax>()
-                .WithOne(ss => ss.Snapshot)
-                .HasForeignKey(fk => fk.SnapshotId);
+                .HasMany(ss => ss.SensorMinMaxes)
+                .WithOne(mm => mm.Snapshot)
+                .HasForeignKey(fk => fk.SnapshotId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             //1-to-1 Snapshot and Variables
             modelBuilder.Entity<WeatherMonitorSnapshot>()
-                .HasOne<WeatherMonitorVariables>()
+                .HasOne(ss => ss.WeatherMonitorVariables)
                 .WithOne(v => v.WeatherMonitorSnapshot)
                 .HasForeignKey<WeatherMonitorVariables>(fk => fk.WeatherMonitorSnapshotId);
 
