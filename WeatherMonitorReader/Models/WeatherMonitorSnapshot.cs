@@ -1,0 +1,18 @@
+﻿namespace WeatherMonitorReader.Models
+{
+    public class WeatherMonitorSnapshot
+    {
+        public Guid Id { get; set; }
+
+        public Guid WeatherMonitorId { get; set; }
+        public WeatherMonitor WeatherMonitor { get; set; } = null!;
+
+        public int Runtime { get; set; }
+        public int Freemem { get; set; }
+        public DateOnly Date { get; set; }
+        public TimeOnly Time { get; set; }
+        public WeatherMonitorVariables WeatherMonitorVariables { get; set; } = null!;
+
+
+    }
+}
