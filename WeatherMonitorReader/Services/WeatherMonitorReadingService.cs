@@ -9,6 +9,11 @@ namespace WeatherMonitorReader.Domain.Services
         IXmlFetcher fetcher,
         IXmlToJsonConverter converter)
     {
+
+        public async Task StartAsync()
+        {
+
+        }
         public async Task FetchDataAsync()
         {
             XmlDocument doc = await fetcher.FetchXmlDocumentAsync();
