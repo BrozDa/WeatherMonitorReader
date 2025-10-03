@@ -2,6 +2,11 @@
 using WeatherMonitorReader.Application.Services;
 using WeatherMonitorReader.Infrastructure.Json;
 using WeatherMonitorReader.Infrastructure.Xml;
+using WeatherMonitorReader.Infrastructure.Persistence.Repositories;
+using WeatherMonitorReader.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace WeatherMonitorReader
 {
@@ -13,10 +18,19 @@ namespace WeatherMonitorReader
             XmlFetcher fetcher = new();
             XmlToJsonConverter converter = new();
 
+            var contextFactory = new WeatherMonitorContextFactory();
+
+            var context = contextFactory.CreateDbContext();
+
+
+            WeatherMonitorRepository repo = new(context);
+
+
             WeatherMonitorReadingService service = new(
                 fetcher,
                 converter,
-                deserializer );
+                deserializer,
+                repo);
 
             await service.ProcessAsync();
         }
