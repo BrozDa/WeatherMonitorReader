@@ -1,5 +1,6 @@
-﻿using WeatherMonitorReader.Domain.Interfaces;
-using WeatherMonitorReader.Domain.Services;
+﻿using WeatherMonitorReader.Application;
+using WeatherMonitorReader.Application.Services;
+using WeatherMonitorReader.Infrastructure.Json;
 using WeatherMonitorReader.Infrastructure.Xml;
 
 namespace WeatherMonitorReader
@@ -8,16 +9,16 @@ namespace WeatherMonitorReader
     {
         static async Task Main(string[] args)
         {
-
+            JsonDeserializer deserializer = new();
             XmlFetcher fetcher = new();
             XmlToJsonConverter converter = new();
 
-            WeatherMonitorReadingService svc = new(fetcher, converter);
+            WeatherMonitorReadingService service = new(
+                fetcher,
+                converter,
+                deserializer );
 
-            await svc.FetchDataAsync();
-
-
-
+            await service.ProcessAsync();
         }
     }
 }

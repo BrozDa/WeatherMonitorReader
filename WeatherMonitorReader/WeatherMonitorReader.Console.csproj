@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\WeatherMonitorReader.Application\WeatherMonitorReader.Application.csproj" />
     <ProjectReference Include="..\WeatherMonitorReader.Infrastructure\WeatherMonitorReader.Infrastructure.csproj" />
   </ItemGroup>
 
