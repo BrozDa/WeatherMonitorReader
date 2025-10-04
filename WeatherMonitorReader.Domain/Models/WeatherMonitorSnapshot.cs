@@ -13,6 +13,5 @@
         public IEnumerable<WeatherMonitorSensorReading> SensorReadings { get; set; } = null!;
         public IEnumerable<WeatherMonitorSnapshotMinMax> SensorMinMaxes { get; set; } = null!;
 
-
     }
 }

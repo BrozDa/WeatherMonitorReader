@@ -27,6 +27,14 @@ namespace WeatherMonitorReader.Infrastructure.Persistence.Repositories
 
             return sensors;
         }
+        public async Task<WeatherMonitorSensor> AddSensorAndSaveAsync(WeatherMonitorSensor sensor)
+        {
+            await dbContext.WeatherMonitorSensors.AddAsync(sensor);
+            await dbContext.SaveChangesAsync();
+
+            return sensor;
+
+        }
         public async Task<WeatherMonitorSnapshot> AddSnapshotAndSaveAsync(WeatherMonitorSnapshot snapshot)
         {
             await dbContext.WeatherMonitorSnapshots.AddAsync(snapshot);
@@ -45,6 +53,11 @@ namespace WeatherMonitorReader.Infrastructure.Persistence.Repositories
         public async Task AddVariablesReadings(WeatherMonitorVariables variablesReading)
         {
             await dbContext.WeatherMonitorVariables.AddAsync(variablesReading);
+        }
+
+        public async Task SaveAsync()
+        {
+            await dbContext.SaveChangesAsync();
         }
 
         //create sensor readings
