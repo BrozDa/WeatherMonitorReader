@@ -4,13 +4,14 @@ using WeatherMonitorReader.Domain.Dtos;
 using WeatherMonitorReader.Domain.Enums;
 using WeatherMonitorReader.Domain.Interfaces;
 using WeatherMonitorReader.Infrastructure.Mappers;
+using System.Runtime.CompilerServices;
 namespace WeatherMonitorReader.Application.Services
 {
     public class WeatherMonitorReadingService(
         IXmlFetcher fetcher,
         IXmlToJsonConverter converter,
         IJsonDeserializer serializer,
-        IDeviceRepository deviceRepository)
+        IWeatherMonitorRepository deviceRepository)
     {
 
         public async Task ProcessAsync()
@@ -26,22 +27,28 @@ namespace WeatherMonitorReader.Application.Services
         {
             var monitor = await GetMonitorEntity(reading.Device);
             var sensorList = new List<WeatherMonitorSensor>();
+            var snapShot = new WeatherMonitorSnapshot();
+            var sensorReadings = new List<WeatherMonitorSensorReading>();
 
             if (monitor is null) //new monitor -> create monitor and sensors
             {
                 monitor = await deviceRepository
-                    .Add(WeatherMonitorMapper.MapMonitor(reading.Device));
+                    .AddMonitor(WeatherMonitorMapper.MapMonitor(reading.Device));
 
-                sensorList = CreateSensorsFromDto(reading.Device);
+                sensorList = await CreateSensorsFromDto(reading.Device);
             }
             else //existing - retrieve list
             {
                 sensorList = await GetSensorEntities(monitor);
             }
-           
+
             //create snapshot
+            snapShot = await CreateSnapshot(reading.Device, monitor);
 
+            //create sensor readings
+            sensorReadings = CreateSensorReadings(reading.Device, sensorList,snapShot.Id);
 
+            //create minMaxes
         }
         private async Task<WeatherMonitor?> GetMonitorEntity(WeatherMonitorDto dto)
         {
@@ -58,7 +65,7 @@ namespace WeatherMonitorReader.Application.Services
         private async Task<List<WeatherMonitorSensor>> GetSensorEntities(WeatherMonitor monitor)
             => await deviceRepository.GetSensors(monitor);
             
-        private List<WeatherMonitorSensor> CreateSensorsFromDto(WeatherMonitorDto dto) {
+        private async Task<List<WeatherMonitorSensor>> CreateSensorsFromDto(WeatherMonitorDto dto) {
 
             List<WeatherMonitorSensor> sensors = new();
 
@@ -74,7 +81,49 @@ namespace WeatherMonitorReader.Application.Services
                     .MapSensor(sensorDto, SensorDirection.Output));
             }
 
+            sensors = await deviceRepository.AddSensors(sensors);
             return sensors;
+
+        }
+
+        private async Task<WeatherMonitorSnapshot> CreateSnapshot(WeatherMonitorDto dto, WeatherMonitor entity)
+        {
+            var snapShot = WeatherMonitorSnapshotMapper.MapSnapShot(dto);
+
+            snapShot.WeatherMonitor = entity;
+            snapShot.WeatherMonitorId = entity.Id;
+
+
+            return await deviceRepository.AddSnapshot(snapShot);
+        }
+        private List<WeatherMonitorSensorReading> CreateSensorReadings(WeatherMonitorDto dto, List<WeatherMonitorSensor> sensors, Guid snapShotId)
+        {
+            var sensorMap = sensors.ToDictionary(x => x.SensorId.ToString(), x => x);
+            var sensorReadings = new List<WeatherMonitorSensorReading>();
+
+            foreach (var sensorDto in dto.Input.Sensors)
+            {
+                sensorReadings.Add(
+                    WeatherMonitorSensorReadingMapper
+                    .Map(
+                        sensorDto, 
+                        sensorMap[sensorDto.Id].Id,
+                        snapShotId
+                    ));
+            }
+            foreach (var sensorDto in dto.Output.Sensors)
+            {
+                sensorReadings.Add(
+                     WeatherMonitorSensorReadingMapper
+                     .Map(
+                         sensorDto,
+                         sensorMap[sensorDto.Id].Id,
+                         snapShotId
+                     ));
+            }
+
+            return sensorReadings;
+
 
         }
 
