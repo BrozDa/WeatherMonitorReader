@@ -34,6 +34,31 @@ namespace WeatherMonitorReader.Infrastructure.Persistence.Repositories
 
             return snapshot;
         }
+        public async Task<bool> AddSensorReadings(List<WeatherMonitorSensorReading> sensorReadings)
+        {
+            await dbContext.WeatherMonitorSensorReadings.AddRangeAsync(sensorReadings);
+            await dbContext.SaveChangesAsync();
+
+            return true;
+        }
+        public async Task<bool> AddMinMaxReadings(List<WeatherMonitorSnapshotMinMax> minMaxReadings)
+        {
+            await dbContext.WeatherMonitorSnapshotMinMaxes.AddRangeAsync(minMaxReadings);
+            await dbContext.SaveChangesAsync();
+
+            return true;
+        }
+        public async Task<bool> AddVariablesReadings(WeatherMonitorVariables variablesReading)
+        {
+            await dbContext.WeatherMonitorVariables.AddAsync(variablesReading);
+            await dbContext.SaveChangesAsync();
+
+            return true;
+        }
+
+        //create sensor readings
+        //create minMaxes
+        //create variables
 
 
 

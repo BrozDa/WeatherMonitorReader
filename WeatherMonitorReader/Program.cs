@@ -20,7 +20,10 @@ namespace WeatherMonitorReader
 
             var contextFactory = new WeatherMonitorContextFactory();
 
-            var context = contextFactory.CreateDbContext();
+            var context = contextFactory.CreateDbContext(null);
+
+            await context.Database.EnsureDeletedAsync();
+            await context.Database.EnsureCreatedAsync();
 
 
             WeatherMonitorRepository repo = new(context);

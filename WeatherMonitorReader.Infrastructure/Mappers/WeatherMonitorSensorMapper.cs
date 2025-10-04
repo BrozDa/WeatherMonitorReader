@@ -6,7 +6,7 @@ namespace WeatherMonitorReader.Infrastructure.Mappers
 {
     public static class WeatherMonitorSensorMapper
     {
-        public static WeatherMonitorSensor MapSensor(WeatherMonitorSensorDto dto, SensorDirection direction)
+        public static WeatherMonitorSensor MapSensor(WeatherMonitorSensorDto dto, SensorDirection direction, Guid monitorId)
         {
             int.TryParse(dto.Id, out int sensorId);
 
@@ -21,6 +21,7 @@ namespace WeatherMonitorReader.Infrastructure.Mappers
             if(int.TryParse(dto.Id, out sensorId))
                 sensor.SensorId = sensorId;
 
+            sensor.WeatherMonitorId = monitorId;
             return sensor;
         }
     }

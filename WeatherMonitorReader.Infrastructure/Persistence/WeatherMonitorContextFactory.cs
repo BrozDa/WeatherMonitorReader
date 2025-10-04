@@ -4,9 +4,9 @@ using Microsoft.Extensions.Configuration;
 
 namespace WeatherMonitorReader.Infrastructure.Persistence
 {
-    public class WeatherMonitorContextFactory
+    public class WeatherMonitorContextFactory : IDesignTimeDbContextFactory<WeatherMonitorContext>
     {
-        public WeatherMonitorContext CreateDbContext()
+        public WeatherMonitorContext CreateDbContext(string[] args)
         {
 
             var config = new ConfigurationBuilder()

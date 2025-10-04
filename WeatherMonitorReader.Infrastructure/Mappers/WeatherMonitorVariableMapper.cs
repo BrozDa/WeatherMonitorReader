@@ -3,9 +3,9 @@ using WeatherMonitorReader.Domain.Dtos;
 
 namespace WeatherMonitorReader.Infrastructure.Mappers
 {
-    internal static class WeatherMonitorVariableMapper
+    public static class WeatherMonitorVariableMapper
     {
-        public static WeatherMonitorVariables MapVariables(WeatherMonitorVariablesDto dto) {
+        public static WeatherMonitorVariables Map(WeatherMonitorVariablesDto dto, Guid snapshotId) {
 
             var variables = new WeatherMonitorVariables();
 
@@ -69,6 +69,7 @@ namespace WeatherMonitorReader.Infrastructure.Mappers
             if (int.TryParse(dto.Lsp, out int lsp))
                 variables.Lsp = lsp;
 
+            variables.WeatherMonitorSnapshotId = snapshotId;
 
             return variables;
         }

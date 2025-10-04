@@ -8,6 +8,9 @@ namespace WeatherMonitorReader.Domain.Interfaces
         Task<WeatherMonitor> AddMonitor(WeatherMonitor monitor);
         Task<List<WeatherMonitorSensor>> GetSensors(WeatherMonitor monitor);
         Task<List<WeatherMonitorSensor>> AddSensors(List<WeatherMonitorSensor> sensors);
-        Task<WeatherMonitorSnapshot> AddSnapshot(WeatherMonitorSnapshot snapshot);  
+        Task<WeatherMonitorSnapshot> AddSnapshot(WeatherMonitorSnapshot snapshot);
+        Task<bool> AddSensorReadings(List<WeatherMonitorSensorReading> sensorReadings);
+        Task<bool> AddMinMaxReadings(List<WeatherMonitorSnapshotMinMax> minMaxReadings);
+        Task<bool> AddVariablesReadings(WeatherMonitorVariables variablesReading);
     }
 }

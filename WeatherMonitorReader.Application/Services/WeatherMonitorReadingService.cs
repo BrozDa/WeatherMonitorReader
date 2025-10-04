@@ -1,10 +1,8 @@
-﻿using System.Xml.Linq;
-using WeatherMonitorReader.Domain.Models;
+﻿using WeatherMonitorReader.Domain.Models;
 using WeatherMonitorReader.Domain.Dtos;
 using WeatherMonitorReader.Domain.Enums;
 using WeatherMonitorReader.Domain.Interfaces;
 using WeatherMonitorReader.Infrastructure.Mappers;
-using System.Runtime.CompilerServices;
 namespace WeatherMonitorReader.Application.Services
 {
     public class WeatherMonitorReadingService(
@@ -26,16 +24,19 @@ namespace WeatherMonitorReader.Application.Services
         private async Task StoreReadings(XmlRootDto reading)
         {
             var monitor = await GetMonitorEntity(reading.Device);
+
             var sensorList = new List<WeatherMonitorSensor>();
             var snapShot = new WeatherMonitorSnapshot();
             var sensorReadings = new List<WeatherMonitorSensorReading>();
+            var minMaxReadings = new List<WeatherMonitorSnapshotMinMax>();
+            var variables = new WeatherMonitorVariables();
 
             if (monitor is null) //new monitor -> create monitor and sensors
             {
                 monitor = await deviceRepository
                     .AddMonitor(WeatherMonitorMapper.MapMonitor(reading.Device));
 
-                sensorList = await CreateSensorsFromDto(reading.Device);
+                sensorList = await CreateSensorsFromDto(reading.Device, monitor.Id);
             }
             else //existing - retrieve list
             {
@@ -49,6 +50,17 @@ namespace WeatherMonitorReader.Application.Services
             sensorReadings = CreateSensorReadings(reading.Device, sensorList,snapShot.Id);
 
             //create minMaxes
+            minMaxReadings = CreateMinMaxReadings(reading.Device.MinMaxRecords, sensorList, snapShot.Id);
+
+            //create variables
+            variables = WeatherMonitorVariableMapper.Map(reading.Device.Variables, snapShot.Id);
+
+            await deviceRepository.AddSensorReadings(sensorReadings);
+            await deviceRepository.AddMinMaxReadings(minMaxReadings);
+            await deviceRepository.AddVariablesReadings(variables);
+
+
+            Console.WriteLine("test done");
         }
         private async Task<WeatherMonitor?> GetMonitorEntity(WeatherMonitorDto dto)
         {
@@ -65,20 +77,20 @@ namespace WeatherMonitorReader.Application.Services
         private async Task<List<WeatherMonitorSensor>> GetSensorEntities(WeatherMonitor monitor)
             => await deviceRepository.GetSensors(monitor);
             
-        private async Task<List<WeatherMonitorSensor>> CreateSensorsFromDto(WeatherMonitorDto dto) {
+        private async Task<List<WeatherMonitorSensor>> CreateSensorsFromDto(WeatherMonitorDto dto, Guid monitorId) {
 
             List<WeatherMonitorSensor> sensors = new();
 
             foreach (var sensorDto in dto.Input.Sensors) {
                 sensors.Add(
                     WeatherMonitorSensorMapper
-                    .MapSensor(sensorDto, SensorDirection.Input));
+                    .MapSensor(sensorDto, SensorDirection.Input, monitorId));
             }
             foreach (var sensorDto in dto.Output.Sensors)
             {
                 sensors.Add(
                     WeatherMonitorSensorMapper
-                    .MapSensor(sensorDto, SensorDirection.Output));
+                    .MapSensor(sensorDto, SensorDirection.Output, monitorId));
             }
 
             sensors = await deviceRepository.AddSensors(sensors);
@@ -92,7 +104,6 @@ namespace WeatherMonitorReader.Application.Services
 
             snapShot.WeatherMonitor = entity;
             snapShot.WeatherMonitorId = entity.Id;
-
 
             return await deviceRepository.AddSnapshot(snapShot);
         }
@@ -124,6 +135,27 @@ namespace WeatherMonitorReader.Application.Services
 
             return sensorReadings;
 
+
+        }
+
+        private List<WeatherMonitorSnapshotMinMax> CreateMinMaxReadings(MinMaxRecordsDto minMaxRecords, List<WeatherMonitorSensor> sensors, Guid snapShotId)
+        {
+            var sensorMap = sensors.ToDictionary(x => x.SensorId.ToString(), x => x);
+            var minMaxReadings = new List<WeatherMonitorSnapshotMinMax>();
+
+            foreach(var minMaxDto in minMaxRecords.MinMaxRecords)
+            {
+                minMaxReadings.Add(
+                     WeatherMonitorSnapshotMinMaxMapper
+                     .Map(
+                         minMaxDto,
+                         sensorMap[minMaxDto.SensorId].Id,
+                         snapShotId
+                     ));
+
+            }
+
+            return minMaxReadings;
 
         }
 

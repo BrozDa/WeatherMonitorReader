@@ -11,6 +11,7 @@ namespace WeatherMonitorReader.Infrastructure.Persistence
         public DbSet<WeatherMonitorSnapshotMinMax> WeatherMonitorSnapshotMinMaxes { get; set; } = null!;
         public DbSet<WeatherMonitorVariables> WeatherMonitorVariables { get; set; } = null!;
 
+        public DbSet<WeatherMonitorSensorReading> WeatherMonitorSensorReadings { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //1-to-m between Monitor and Sensors
