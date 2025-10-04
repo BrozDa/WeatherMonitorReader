@@ -22,7 +22,8 @@ namespace WeatherMonitorReader
 
 
             JsonDeserializer deserializer = new();
-            XmlFetcher fetcher = new();
+            //XmlFromFileFetcher fetcher = new();
+            HttpXmlFetcher httpXmlFetcher = new("http://localhost:5167/api/monitor");
             XmlToJsonConverter converter = new();
 
             var contextFactory = new WeatherMonitorContextFactory();
@@ -36,7 +37,7 @@ namespace WeatherMonitorReader
 
 
             WeatherMonitorReadingService service = new(
-                fetcher,
+                httpXmlFetcher,
                 converter,
                 deserializer,
                 repo,
