@@ -4,7 +4,7 @@ using WeatherMonitorReader.Domain.Dtos;
 
 namespace WeatherMonitorReader.Infrastructure.Mappers
 {
-    internal static class WeatherMonitorSensorMapper
+    public static class WeatherMonitorSensorMapper
     {
         public static WeatherMonitorSensor MapSensor(WeatherMonitorSensorDto dto, SensorDirection direction)
         {

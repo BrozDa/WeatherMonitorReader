@@ -15,6 +15,10 @@ namespace WeatherMonitorReader.Infrastructure.Persistence.Repositories
             await dbContext.SaveChangesAsync();
             return monitor;
         }
+        public async Task<List<WeatherMonitorSensor>> GetSensors(WeatherMonitor monitor)
+        {
+            return await dbContext.WeatherMonitorSensors.Where(s => s.WeatherMonitorId == monitor.Id).ToListAsync();
+        }
 
 
     }

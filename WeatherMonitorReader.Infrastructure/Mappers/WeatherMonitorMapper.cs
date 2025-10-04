@@ -3,7 +3,7 @@ using WeatherMonitorReader.Domain.Dtos;
 
 namespace WeatherMonitorReader.Infrastructure.Mappers
 {
-    internal static class WeatherMonitorMapper
+    public static class WeatherMonitorMapper
     {
         public static WeatherMonitor MapMonitor(WeatherMonitorDto dto)
         {

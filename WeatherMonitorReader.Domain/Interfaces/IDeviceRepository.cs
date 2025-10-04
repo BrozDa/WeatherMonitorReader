@@ -6,5 +6,8 @@ namespace WeatherMonitorReader.Domain.Interfaces
     {
         Task<WeatherMonitor?> GetBySerialNumber(string serialNumber);
         Task<WeatherMonitor> Add(WeatherMonitor monitor);
+
+
+        Task<List<WeatherMonitorSensor>> GetSensors(WeatherMonitor monitor);
     }
 }

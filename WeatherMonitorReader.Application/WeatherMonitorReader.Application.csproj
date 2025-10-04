@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WeatherMonitorReader.Domain\WeatherMonitorReader.Domain.csproj" />
+    <ProjectReference Include="..\WeatherMonitorReader.Infrastructure\WeatherMonitorReader.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
