@@ -5,79 +5,92 @@ using WeatherMonitorReader.Domain.Interfaces;
 using WeatherMonitorReader.Infrastructure.Mappers;
 namespace WeatherMonitorReader.Application.Services
 {
-    public class WeatherMonitorReadingService(
-        IXmlFetcher fetcher,
-        IXmlToJsonConverter converter,
-        IJsonDeserializer serializer,
-        IWeatherMonitorRepository deviceRepository)
+    public class WeatherMonitorReadingService
     {
+        private readonly IXmlFetcher _fetcher;
+        private readonly IXmlToJsonConverter _converter;
+        private readonly IWeatherMonitorRepository _repository;
+        private readonly IJsonDeserializer _deserializer;
 
+        private WeatherMonitor _monitor;
+        private List<WeatherMonitorSensor> _monitorSensors;
+        private WeatherMonitorSnapshot _snapShot;
+
+        private bool _newMonitor = false;
+
+        public WeatherMonitorReadingService(
+            IXmlFetcher fetcher,
+            IXmlToJsonConverter converter,
+            IJsonDeserializer deserializer,
+            IWeatherMonitorRepository deviceRepository)
+        {
+            _fetcher = fetcher;
+            _converter = converter;
+            _deserializer = deserializer;
+            _repository = deviceRepository;
+
+            _monitor = new();
+            _monitorSensors = new();
+            _snapShot = new();
+        }
         public async Task ProcessAsync()
         {
-            var xml = await fetcher.FetchXmlDocumentAsync();
-            var jsonString = converter.ConvertXmlToJson(xml);
-            var xmlObject = serializer.Deserialize(jsonString);
+            var xml = await _fetcher.FetchXmlDocumentAsync();
+            var jsonString = _converter.ConvertXmlToJson(xml);
+            var xmlRootDto = _deserializer.Deserialize(jsonString);
 
-            await StoreReadings(xmlObject);
+            await InitializeMonitor(xmlRootDto.Device);
+            await InitializeSensors(xmlRootDto.Device);
+            await InitializeSnapshot(xmlRootDto.Device);
+
+            await MapAndStoreReadings(xmlRootDto);
+        }
+        private async Task InitializeMonitor(WeatherMonitorDto monitorDto)
+        {
+            var entity = await _repository.GetBySerialNumber(monitorDto.SerialNumber);
+
+            if(entity is null)
+            {
+                entity = await _repository
+                    .AddMonitorAndSaveAsync(WeatherMonitorMapper.MapMonitor(monitorDto));
+
+                _newMonitor = true;
+            }
+
+            _monitor = entity;
+        }
+        private async Task InitializeSensors(WeatherMonitorDto monitorDto)
+        {
+            _monitorSensors = _newMonitor 
+                ? await _repository.GetSensors(_monitor)
+                : await CreateAndStoreSensorsFromDto(monitorDto, _monitor.Id);
+        }
+        private async Task InitializeSnapshot(WeatherMonitorDto monitorDto)
+        {
+            var snapShot = WeatherMonitorSnapshotMapper.MapSnapShot(monitorDto);
+
+            snapShot.WeatherMonitor = _monitor;
+            snapShot.WeatherMonitorId = _monitor.Id;
+
+            _snapShot = await _repository.AddSnapshotAndSaveAsync(snapShot);
         }
 
-        private async Task StoreReadings(XmlRootDto reading)
+        private async Task MapAndStoreReadings(XmlRootDto reading)
         {
-            var monitor = await GetMonitorEntity(reading.Device);
-
-            var sensorList = new List<WeatherMonitorSensor>();
-            var snapShot = new WeatherMonitorSnapshot();
-            var sensorReadings = new List<WeatherMonitorSensorReading>();
-            var minMaxReadings = new List<WeatherMonitorSnapshotMinMax>();
-            var variables = new WeatherMonitorVariables();
-
-            if (monitor is null) //new monitor -> create monitor and sensors
-            {
-                monitor = await deviceRepository
-                    .AddMonitor(WeatherMonitorMapper.MapMonitor(reading.Device));
-
-                sensorList = await CreateSensorsFromDto(reading.Device, monitor.Id);
-            }
-            else //existing - retrieve list
-            {
-                sensorList = await GetSensorEntities(monitor);
-            }
-
-            //create snapshot
-            snapShot = await CreateSnapshot(reading.Device, monitor);
-
             //create sensor readings
-            sensorReadings = CreateSensorReadings(reading.Device, sensorList,snapShot.Id);
+            var sensorReadings = CreateSensorReadings(reading.Device, _monitorSensors, _snapShot.Id);
+            await _repository.AddSensorReadings(sensorReadings);
 
             //create minMaxes
-            minMaxReadings = CreateMinMaxReadings(reading.Device.MinMaxRecords, sensorList, snapShot.Id);
+            var minMaxReadings = CreateMinMaxReadings(reading.Device.MinMaxRecords, _monitorSensors, _snapShot.Id);
+            await _repository.AddMinMaxReadings(minMaxReadings);
 
             //create variables
-            variables = WeatherMonitorVariableMapper.Map(reading.Device.Variables, snapShot.Id);
-
-            await deviceRepository.AddSensorReadings(sensorReadings);
-            await deviceRepository.AddMinMaxReadings(minMaxReadings);
-            await deviceRepository.AddVariablesReadings(variables);
-
-
-            Console.WriteLine("test done");
+            var variables = WeatherMonitorVariableMapper.Map(reading.Device.Variables, _snapShot.Id);
+            await _repository.AddVariablesReadings(variables);
         }
-        private async Task<WeatherMonitor?> GetMonitorEntity(WeatherMonitorDto dto)
-        {
-            var stored = await deviceRepository.GetBySerialNumber(dto.SerialNumber);
             
-            if(stored is not null && stored.Firmware != dto.Firmware)
-            {
-                stored.Firmware = dto.Firmware;
-            }
-
-            return stored;
-        }
-
-        private async Task<List<WeatherMonitorSensor>> GetSensorEntities(WeatherMonitor monitor)
-            => await deviceRepository.GetSensors(monitor);
-            
-        private async Task<List<WeatherMonitorSensor>> CreateSensorsFromDto(WeatherMonitorDto dto, Guid monitorId) {
+        private async Task<List<WeatherMonitorSensor>> CreateAndStoreSensorsFromDto(WeatherMonitorDto dto, Guid monitorId) {
 
             List<WeatherMonitorSensor> sensors = new();
 
@@ -93,20 +106,11 @@ namespace WeatherMonitorReader.Application.Services
                     .MapSensor(sensorDto, SensorDirection.Output, monitorId));
             }
 
-            sensors = await deviceRepository.AddSensors(sensors);
+            sensors = await _repository.AddSensorsAndSaveAsync(sensors);
             return sensors;
 
         }
 
-        private async Task<WeatherMonitorSnapshot> CreateSnapshot(WeatherMonitorDto dto, WeatherMonitor entity)
-        {
-            var snapShot = WeatherMonitorSnapshotMapper.MapSnapShot(dto);
-
-            snapShot.WeatherMonitor = entity;
-            snapShot.WeatherMonitorId = entity.Id;
-
-            return await deviceRepository.AddSnapshot(snapShot);
-        }
         private List<WeatherMonitorSensorReading> CreateSensorReadings(WeatherMonitorDto dto, List<WeatherMonitorSensor> sensors, Guid snapShotId)
         {
             var sensorMap = sensors.ToDictionary(x => x.SensorId.ToString(), x => x);
@@ -159,19 +163,5 @@ namespace WeatherMonitorReader.Application.Services
 
         }
 
-        //private WeatherMonitorSnapshot CreateSnapshot()
-
-        /*Flow:
-         * 1. Grab Device based on SN - if null, then create new
-         *              - anything is different then update
-         *              
-         * ******** Device done ********
-         * 2. Grab sensors - create dictionary for quick mapping
-         * 
-         * 3. Create Weather Snapshot - link to device
-         * 
-         * 4. Create Sensor readings, minmaxes & variables & link
-         * 5. store all
-        */
     }
 }
