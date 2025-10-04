@@ -1,12 +1,9 @@
-﻿using WeatherMonitorReader.Application;
-using WeatherMonitorReader.Application.Services;
+﻿using WeatherMonitorReader.Application.Services;
 using WeatherMonitorReader.Infrastructure.Json;
 using WeatherMonitorReader.Infrastructure.Xml;
 using WeatherMonitorReader.Infrastructure.Persistence.Repositories;
 using WeatherMonitorReader.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Extensions.Logging;
 
 namespace WeatherMonitorReader
 {
@@ -14,6 +11,16 @@ namespace WeatherMonitorReader
     {
         static async Task Main(string[] args)
         {
+            using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                .AddConsole()
+                .SetMinimumLevel(LogLevel.Information);
+            });
+            ILogger<WeatherMonitorReadingService> svcLogger = loggerFactory.CreateLogger<WeatherMonitorReadingService>();
+
+
+
             JsonDeserializer deserializer = new();
             XmlFetcher fetcher = new();
             XmlToJsonConverter converter = new();
@@ -22,7 +29,6 @@ namespace WeatherMonitorReader
 
             var context = contextFactory.CreateDbContext(null);
 
-            await context.Database.EnsureDeletedAsync();
             await context.Database.EnsureCreatedAsync();
 
 
@@ -33,7 +39,8 @@ namespace WeatherMonitorReader
                 fetcher,
                 converter,
                 deserializer,
-                repo);
+                repo,
+                svcLogger);
 
             await service.ProcessAsync();
         }

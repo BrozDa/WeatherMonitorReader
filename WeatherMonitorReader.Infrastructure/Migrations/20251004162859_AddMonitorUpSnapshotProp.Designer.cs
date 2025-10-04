@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WeatherMonitorReader.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using WeatherMonitorReader.Infrastructure.Persistence;
 namespace WeatherMonitorReader.Infrastructure.Migrations
 {
     [DbContext(typeof(WeatherMonitorContext))]
-    partial class WeatherMonitorContextModelSnapshot : ModelSnapshot
+    [Migration("20251004162859_AddMonitorUpSnapshotProp")]
+    partial class AddMonitorUpSnapshotProp
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

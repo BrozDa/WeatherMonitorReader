@@ -9,6 +9,6 @@ namespace WeatherMonitorReader.Domain.Interfaces
 {
     public interface IXmlFetcher
     {
-        Task<XmlDocument> FetchXmlDocumentAsync();
+        Task<XmlDocument?> FetchXmlDocumentAsync();
     }
 }
