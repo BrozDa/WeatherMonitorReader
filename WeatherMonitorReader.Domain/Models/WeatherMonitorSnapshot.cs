@@ -1,4 +1,6 @@
-﻿namespace WeatherMonitorReader.Domain.Models
+﻿using System;
+
+namespace WeatherMonitorReader.Domain.Models
 {
     public class WeatherMonitorSnapshot
     {
@@ -16,14 +18,17 @@
 
         public static WeatherMonitorSnapshot MonitorDownSnapshot(Guid monitorId)
         {
+            var date = DateTime.UtcNow;
+            date = new DateTime((date.Ticks / TimeSpan.TicksPerSecond) * TimeSpan.TicksPerSecond); //props to stackoverflow
+
             return new WeatherMonitorSnapshot()
             {
                 WeatherMonitorId = monitorId,
                 IsMonitorResponding = false,
                 Runtime = null,
                 Freemem = null,
-                Date = DateOnly.FromDateTime(DateTime.UtcNow),
-                Time = TimeOnly.FromDateTime(DateTime.UtcNow),
+                Date = DateOnly.FromDateTime(date),
+                Time = TimeOnly.FromDateTime(date),
                 WeatherMonitorVariables = null,
                 SensorReadings = null,
                 SensorMinMaxes = null,
