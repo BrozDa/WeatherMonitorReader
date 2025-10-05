@@ -3,8 +3,17 @@ using WeatherMonitorReader.Domain.Models;
 
 namespace WeatherMonitorReader.Infrastructure.Mappers
 {
+    /// <summary>
+    /// Provides functionality to map <see cref="WeatherMonitorVariablesDto"/> into <see cref="WeatherMonitorVariables"/>
+    /// </summary>
     public static class WeatherMonitorVariableMapper
     {
+        /// <summary>
+        /// Maps <see cref="WeatherMonitorVariablesDto"/> into <see cref="WeatherMonitorVariables"/>
+        /// </summary>
+        /// <param name="dto">A <see cref="WeatherMonitorVariablesDto"/> containing data used for mapping</param>
+        /// <param name="snapshotId">A <see cref="Guid"/> defining <see cref="WeatherMonitorSnapshot"/> to which variable model is associated to</param>
+        /// <returns>A mapped <see cref="WeatherMonitorVariables"/></returns>
         public static WeatherMonitorVariables Map(WeatherMonitorVariablesDto dto, Guid snapshotId)
         {
             var variables = new WeatherMonitorVariables();

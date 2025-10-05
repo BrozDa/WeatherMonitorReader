@@ -3,6 +3,13 @@ using WeatherMonitorReader.Domain.Models;
 
 namespace WeatherMonitorReader.Infrastructure.Persistence
 {
+    /// <summary>
+    /// Represents EF core context for WeatherMonitorReader
+    /// </summary>
+    /// <param name="options"></param>
+    /// <remarks>
+    /// Defines DbSets for all domain models and defines relationships within <see cref="OnModelCreating"/>
+    /// </remarks>
     public class WeatherMonitorContext(DbContextOptions<WeatherMonitorContext> options) : DbContext(options)
     {
         public DbSet<WeatherMonitor> WeatherMonitors { get; set; } = null!;

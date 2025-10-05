@@ -3,8 +3,16 @@ using WeatherMonitorReader.Domain.Models;
 
 namespace WeatherMonitorReader.Infrastructure.Mappers
 {
+    /// <summary>
+    /// Provides functionality to map <see cref="WeatherMonitorDto"/> into <see cref="WeatherMonitorSnapshot"/>
+    /// </summary>
     public class WeatherMonitorSnapshotMapper
     {
+        /// <summary>
+        /// Maps <see cref="WeatherMonitorDto"/> into <see cref="WeatherMonitorSnapshot"/>
+        /// </summary>
+        /// <param name="dto">A <see cref="WeatherMonitorDto"/> containing data used for mapping</param>
+        /// <returns>A mapped <see cref="WeatherMonitorSnapshot"/></returns>
         public static WeatherMonitorSnapshot Map(WeatherMonitorDto dto)
         {
             var snapshot = new WeatherMonitorSnapshot();
