@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using System.Xml;
 using WeatherMonitorReader.Domain.Dtos;
 using WeatherMonitorReader.Domain.Enums;
 using WeatherMonitorReader.Domain.Interfaces;
@@ -54,20 +55,7 @@ namespace WeatherMonitorReader.Application.Services
             {
                 var xml = await _fetcher.FetchXmlDocumentAsync();
 
-                if (xml is null && _lastUsedMonitor is null)
-                {
-                    _logger.LogCritical("[WeatherMonitorReadingService] Monitor down - no previously used monitor to reference");
-                    return;
-                }
-                if (xml is null)
-                {
-                    _snapShot = WeatherMonitorSnapshot.MonitorDownSnapshot(_lastUsedMonitor!.Id);
-                    await _repository.AddSnapshotAndSaveAsync(_snapShot);
-                    _logger.LogCritical("[WeatherMonitorReadingService] Monitor down - used last used monitor for reference");
-                    return;
-                }
-
-                var jsonString = _converter.ConvertXmlToJson(xml);
+                var jsonString = _converter.ConvertXmlToJson(xml!);
                 var xmlRootDto = _deserializer.Deserialize(jsonString);
 
                 await InitializeMonitorAsync(xmlRootDto.Device);
@@ -78,6 +66,11 @@ namespace WeatherMonitorReader.Application.Services
 
                 _lastUsedMonitor = _monitor;
             }
+            catch (XmlException)
+            {
+                _logger.LogWarning("[WeatherMonitorReadingService][IXmlFetcher] The provided request response was not in valid XML format");
+                return;
+            }
             catch (UriFormatException)
             {
                 _logger.LogWarning("[WeatherMonitorReadingService][IXmlFetcher] The provided request URI is not valid relative or absolute URI");
@@ -86,6 +79,18 @@ namespace WeatherMonitorReader.Application.Services
             catch (HttpRequestException)
             {
                 _logger.LogWarning("[WeatherMonitorReadingService][IXmlFetcher] The request failed due to an issue getting a valid HTTP response");
+
+                if(_lastUsedMonitor is null)
+                {
+                    _logger.LogCritical("[WeatherMonitorReadingService] Monitor down - no previously used monitor to reference");
+                }
+                else
+                {
+                    _snapShot = WeatherMonitorSnapshot.MonitorDownSnapshot(_lastUsedMonitor!.Id);
+                    await _repository.AddSnapshotAndSaveAsync(_snapShot);
+                    _logger.LogCritical("[WeatherMonitorReadingService] Monitor down - used last used monitor for reference");
+                }
+
                 return;
             }
             catch (JsonException)
@@ -95,7 +100,7 @@ namespace WeatherMonitorReader.Application.Services
             }
             catch (Exception ex)
             {
-                _logger.LogWarning("[WeatherMonitorReadingService] Unhandled exception while processing the request {messsage}", ex.Message);
+                _logger.LogWarning("[WeatherMonitorReadingService] Unhandled exception while processing the request {messsage}, {trace}", ex.Message, ex.StackTrace);
                 return;
             }
         }
@@ -236,15 +241,31 @@ namespace WeatherMonitorReader.Application.Services
             var sensorIdMap = _monitorSensors.ToDictionary(x => x.SensorId.ToString(), x => x.Id);
             var sensorReadings = new List<WeatherMonitorSensorReading>();
 
-            foreach (var sensorDto in dto.Input.Sensors)
+            if(dto.Input?.Sensors is not null)
             {
-                sensorReadings.Add(
-                    await CreatedSensorReadingAsync(sensorIdMap, sensorDto, SensorDirection.Input));
+                foreach (var sensorDto in dto.Input.Sensors)
+                {
+                    sensorReadings.Add(
+                        await CreateSensorReadingAsync(sensorIdMap, sensorDto, SensorDirection.Input));
+                }
             }
-            foreach (var sensorDto in dto.Output.Sensors)
+            else
             {
-                sensorReadings.Add(
-                    await CreatedSensorReadingAsync(sensorIdMap, sensorDto, SensorDirection.Output));
+                _logger.LogWarning("[WeatherMonitorReadingService] Missing input sensors");
+            }
+
+
+            if (dto.Output?.Sensors is not null)
+            {
+                foreach (var sensorDto in dto.Output.Sensors)
+                {
+                    sensorReadings.Add(
+                        await CreateSensorReadingAsync(sensorIdMap, sensorDto, SensorDirection.Output));
+                }
+            }
+            else
+            {
+                _logger.LogWarning("[WeatherMonitorReadingService] Missing output sensors");
             }
 
             return sensorReadings;
@@ -257,7 +278,7 @@ namespace WeatherMonitorReader.Application.Services
         /// <param name="sensorDirection">A <see cref="SensorDirection"/> telling the sensor direction</param>
         /// <returns>Initialized <see cref="WeatherMonitorSensorReading"/></returns>
         /// <remarks>If there is new sensor which is not stored in the database then new sensor is created, stored to the repository</remarks>
-        private async Task<WeatherMonitorSensorReading> CreatedSensorReadingAsync(
+        private async Task<WeatherMonitorSensorReading> CreateSensorReadingAsync(
             Dictionary<string, Guid> sensorIdMap,
             WeatherMonitorSensorDto sensorDto,
             SensorDirection sensorDirection)
