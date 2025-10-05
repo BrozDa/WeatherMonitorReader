@@ -7,6 +7,9 @@ using WeatherMonitorReader.Infrastructure.Mappers;
 
 namespace WeatherMonitorReader.Application.Services
 {
+    /// <summary>
+    /// A service which pulls & process data from WeatherMonitor
+    /// </summary>
     public class WeatherMonitorReadingService
     {
         private readonly IXmlFetcher _fetcher;
@@ -14,6 +17,7 @@ namespace WeatherMonitorReader.Application.Services
         private readonly IJsonDeserializer _deserializer;
         private readonly IWeatherMonitorRepository _repository;
         private readonly ILogger<WeatherMonitorReadingService> _logger;
+
 
         private WeatherMonitor _monitor;
         private List<WeatherMonitorSensor> _monitorSensors;
@@ -40,6 +44,9 @@ namespace WeatherMonitorReader.Application.Services
             _snapShot = new();
         }
 
+        /// <summary>
+        /// Pulls data and calls internal methods to process pulled data
+        /// </summary>
         public async Task ProcessAsync()
         {
             var xml = await _fetcher.FetchXmlDocumentAsync();
@@ -60,17 +67,25 @@ namespace WeatherMonitorReader.Application.Services
             var jsonString = _converter.ConvertXmlToJson(xml!);
             var xmlRootDto = _deserializer.Deserialize(jsonString);
 
-            await InitializeMonitor(xmlRootDto.Device);
-            await InitializeSensors(xmlRootDto.Device);
-            await InitializeSnapshot(xmlRootDto.Device);
+            await InitializeMonitorAsync(xmlRootDto.Device);
+            await InitializeSensorsAsync(xmlRootDto.Device);
+            await InitializeSnapshotAsync(xmlRootDto.Device);
 
-            await MapAndStoreReadings(xmlRootDto);
+            await MapAndStoreReadingsAsync(xmlRootDto);
 
             _logger.LogInformation("[WeatherMonitorReadingService] Reading successful");
             _lastUsedMonitor = _monitor;
         }
-
-        private async Task InitializeMonitor(WeatherMonitorDto monitorDto)
+        /// <summary>
+        /// Initializes WeatherMonitor field based on data in Dto
+        /// </summary>
+        /// <param name="monitorDto">A <see cref="WeatherMonitorDto"/> used to pull from DB/ initialize new weather monitor</param>
+        /// <remarks>
+        /// Checks whether DB contains monitor with same SN as DTO. If not, new monitor will be created and 
+        /// internal field marking new monitor is set.
+        /// In addition, double check if monitor firmware was not updated - any change is stored
+        /// </remarks>
+        private async Task InitializeMonitorAsync(WeatherMonitorDto monitorDto)
         {
             var entity = await _repository.GetBySerialNumber(monitorDto.SerialNumber);
 
@@ -93,14 +108,25 @@ namespace WeatherMonitorReader.Application.Services
             _monitor = entity;
         }
 
-        private async Task InitializeSensors(WeatherMonitorDto monitorDto)
+        /// <summary>
+        /// Initializes WeatherMonitor sensors field based on data in Dto
+        /// </summary>
+        /// <param name="monitorDto">A <see cref="WeatherMonitorDto"/> used to pull from DB/ initialize new weather monitor sensors</param>
+        /// <remarks>
+        /// Checks whether new monitor was created in previous step. If so, sensors will be created from DTO. Sensors will be pulled from DB in case 
+        /// of existing monitor
+        /// </remarks>
+        private async Task InitializeSensorsAsync(WeatherMonitorDto monitorDto)
         {
             _monitorSensors = _newMonitor
-                ? await CreateAndStoreSensorsFromDto(monitorDto)
+                ? await CreateAndStoreSensorsFromDtoAsync(monitorDto)
                 : await _repository.GetSensors(_monitor);
         }
-
-        private async Task InitializeSnapshot(WeatherMonitorDto monitorDto)
+        /// <summary>
+        /// Initializes new reading snapshot based on data in Dto and stores it to Db
+        /// </summary>
+        /// <param name="monitorDto">A <see cref="WeatherMonitorDto"/> used to initialize new weather monitor snapshot</param>
+        private async Task InitializeSnapshotAsync(WeatherMonitorDto monitorDto)
         {
             var snapShot = WeatherMonitorSnapshotMapper.Map(monitorDto);
 
@@ -109,16 +135,19 @@ namespace WeatherMonitorReader.Application.Services
 
             _snapShot = await _repository.AddSnapshotAndSaveAsync(snapShot);
         }
-
-        private async Task MapAndStoreReadings(XmlRootDto reading)
+        /// <summary>
+        /// Maps and stores Sensor Readings, MinMax Readings and Variables
+        /// </summary>
+        /// <param name="reading">An <see cref="XmlRootDto"/> object container deserialized data</param>
+        private async Task MapAndStoreReadingsAsync(XmlRootDto reading)
         {
             //create sensor readings
-            var sensorReadings = await CreateSensorReadings(reading.Device, _monitorSensors);
+            var sensorReadings = await CreateSensorReadingsAsync(reading.Device);
             await _repository.AddSensorReadings(sensorReadings);
             await _repository.SaveAsync();
 
             //create minMaxes
-            var minMaxReadings = CreateMinMaxReadings(reading.Device.MinMaxRecords, _monitorSensors);
+            var minMaxReadings = CreateMinMaxReadings(reading.Device.MinMaxRecords);
             await _repository.AddMinMaxReadings(minMaxReadings);
             await _repository.SaveAsync();
 
@@ -128,7 +157,12 @@ namespace WeatherMonitorReader.Application.Services
             await _repository.SaveAsync();
         }
 
-        private async Task<List<WeatherMonitorSensor>> CreateAndStoreSensorsFromDto(WeatherMonitorDto dto)
+        /// <summary>
+        /// Creates List of new sensors based on data in passed dto and stores it to the repository
+        /// </summary>
+        /// <param name="dto">A <see cref="WeatherMonitorDto"/> containing data to initialize sensors</param>
+        /// <returns>A list of created <see cref="WeatherMonitorSensor"/></returns>
+        private async Task<List<WeatherMonitorSensor>> CreateAndStoreSensorsFromDtoAsync(WeatherMonitorDto dto)
         {
             List<WeatherMonitorSensor> sensors = new();
 
@@ -149,8 +183,13 @@ namespace WeatherMonitorReader.Application.Services
             _logger.LogInformation("[WeatherMonitorReadingService] Created new sensors for monitor ID: {id}", _monitor.Id);
             return sensors;
         }
-
-        private async Task<WeatherMonitorSensor> CreateSingleSensor(WeatherMonitorSensorDto dto, SensorDirection direction)
+        /// <summary>
+        /// Creates a new sensor based on data in passed dto and stores it to the repository
+        /// </summary>
+        /// <param name="dto">A <see cref="WeatherMonitorSensorDto"/> containing data to initialize sensor</param>
+        /// <param name="direction">A <see cref="SensorDirection"/> telling the sensor direction</param>
+        /// <returns></returns>
+        private async Task<WeatherMonitorSensor> CreateSingleSensorAsync(WeatherMonitorSensorDto dto, SensorDirection direction)
         {
             var sensor = WeatherMonitorSensorMapper.Map(dto, direction, _monitor.Id);
             sensor = await _repository.AddSensorAndSaveAsync(sensor);
@@ -160,29 +199,42 @@ namespace WeatherMonitorReader.Application.Services
 
             return sensor;
         }
-
-        private async Task<List<WeatherMonitorSensorReading>> CreateSensorReadings(
-            WeatherMonitorDto dto,
-            List<WeatherMonitorSensor> sensors)
+        /// <summary>
+        /// Creates sensor readings for existing sensors based on data in passed dto
+        /// </summary>
+        /// <param name="dto">A <see cref="WeatherMonitorDto"/> containing data to initialize readings</param>
+        /// <returns>A list of created <see cref="WeatherMonitorSensorReading"/></returns>
+        /// <remarks>
+        /// Utilizes a map of sensor Id from DTO (eg: 1002) to actual sensor Guid for quick lookup
+        /// </remarks>
+        private async Task<List<WeatherMonitorSensorReading>> CreateSensorReadingsAsync(
+            WeatherMonitorDto dto)
         {
-            var sensorIdMap = sensors.ToDictionary(x => x.SensorId.ToString(), x => x.Id);
+            var sensorIdMap = _monitorSensors.ToDictionary(x => x.SensorId.ToString(), x => x.Id);
             var sensorReadings = new List<WeatherMonitorSensorReading>();
 
             foreach (var sensorDto in dto.Input.Sensors)
             {
                 sensorReadings.Add(
-                    await CreatedSensorReading(sensorIdMap, sensorDto, SensorDirection.Input));
+                    await CreatedSensorReadingAsync(sensorIdMap, sensorDto, SensorDirection.Input));
             }
             foreach (var sensorDto in dto.Output.Sensors)
             {
                 sensorReadings.Add(
-                    await CreatedSensorReading(sensorIdMap, sensorDto, SensorDirection.Output));
+                    await CreatedSensorReadingAsync(sensorIdMap, sensorDto, SensorDirection.Output));
             }
 
             return sensorReadings;
         }
-
-        private async Task<WeatherMonitorSensorReading> CreatedSensorReading(
+        /// <summary>
+        /// Creates new sensor reading
+        /// </summary>
+        /// <param name="sensorIdMap">A Dictionary map of dto Ids to actual sensor Guids</param>
+        /// <param name="sensorDto">A <see cref="WeatherMonitorSensorDto"/> containing new data</param>
+        /// <param name="sensorDirection">A <see cref="SensorDirection"/> telling the sensor direction</param>
+        /// <returns>Initialized <see cref="WeatherMonitorSensorReading"/></returns>
+        /// <remarks>If there is new sensor which is not stored in the database then new sensor is created, stored to the repository</remarks>
+        private async Task<WeatherMonitorSensorReading> CreatedSensorReadingAsync(
             Dictionary<string, Guid> sensorIdMap,
             WeatherMonitorSensorDto sensorDto,
             SensorDirection sensorDirection)
@@ -191,7 +243,7 @@ namespace WeatherMonitorReader.Application.Services
 
             if (!sensorIdMap.TryGetValue(sensorDto.Id, out var _))
             {
-                var newSensor = await CreateSingleSensor(sensorDto, SensorDirection.Output);
+                var newSensor = await CreateSingleSensorAsync(sensorDto, SensorDirection.Output);
 
                 reading = WeatherMonitorSensorReadingMapper.Map(
                     sensorDto,
@@ -209,10 +261,17 @@ namespace WeatherMonitorReader.Application.Services
             }
             return reading;
         }
-
-        private List<WeatherMonitorSnapshotMinMax> CreateMinMaxReadings(MinMaxRecordsDto minMaxRecords, List<WeatherMonitorSensor> sensors)
+        /// <summary>
+        /// Creates a List of <see cref="WeatherMonitorSnapshotMinMax"/> based on data in passed dto 
+        /// </summary>
+        /// <param name="minMaxRecords">A <see cref="MinMaxRecordsDto"/> containing min max values </param>
+        /// <returns> A List of <see cref="WeatherMonitorSnapshotMinMax"/></returns>
+        /// <remarks>
+        /// Utilizes a map of sensor Id from DTO (eg: 1002) to actual sensor Guid for quick lookup
+        /// </remarks>
+        private List<WeatherMonitorSnapshotMinMax> CreateMinMaxReadings(MinMaxRecordsDto minMaxRecords)
         {
-            var sensorMap = sensors.ToDictionary(x => x.SensorId.ToString(), x => x);
+            var sensorMap = _monitorSensors.ToDictionary(x => x.SensorId.ToString(), x => x);
             var minMaxReadings = new List<WeatherMonitorSnapshotMinMax>();
 
             foreach (var minMaxDto in minMaxRecords.MinMaxRecords)
