@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using WeatherMonitorReader.Domain.Dtos;
 using WeatherMonitorReader.Domain.Enums;
 using WeatherMonitorReader.Domain.Interfaces;
@@ -49,32 +50,54 @@ namespace WeatherMonitorReader.Application.Services
         /// </summary>
         public async Task ProcessAsync()
         {
-            var xml = await _fetcher.FetchXmlDocumentAsync();
-
-            if (xml is null && _lastUsedMonitor is null)
+            try
             {
-                _logger.LogCritical("[WeatherMonitorReadingService] Monitor down - no previously used monitor to reference");
+                var xml = await _fetcher.FetchXmlDocumentAsync();
+
+                if (xml is null && _lastUsedMonitor is null)
+                {
+                    _logger.LogCritical("[WeatherMonitorReadingService] Monitor down - no previously used monitor to reference");
+                    return;
+                }
+                if (xml is null)
+                {
+                    _snapShot = WeatherMonitorSnapshot.MonitorDownSnapshot(_lastUsedMonitor!.Id);
+                    await _repository.AddSnapshotAndSaveAsync(_snapShot);
+                    _logger.LogCritical("[WeatherMonitorReadingService] Monitor down - used last used monitor for reference");
+                    return;
+                }
+
+                var jsonString = _converter.ConvertXmlToJson(xml);
+                var xmlRootDto = _deserializer.Deserialize(jsonString);
+
+                await InitializeMonitorAsync(xmlRootDto.Device);
+                await InitializeSensorsAsync(xmlRootDto.Device);
+                await InitializeSnapshotAsync(xmlRootDto.Device);
+
+                await MapAndStoreReadingsAsync(xmlRootDto);
+
+                _lastUsedMonitor = _monitor;
+            }
+            catch (UriFormatException)
+            {
+                _logger.LogWarning("[WeatherMonitorReadingService][IXmlFetcher] The provided request URI is not valid relative or absolute URI");
                 return;
             }
-            if (xml is null)
+            catch (HttpRequestException)
             {
-                _snapShot = WeatherMonitorSnapshot.MonitorDownSnapshot(_lastUsedMonitor!.Id);
-                await _repository.AddSnapshotAndSaveAsync(_snapShot);
-                _logger.LogCritical("[WeatherMonitorReadingService] Monitor down - used last used monitor for reference");
+                _logger.LogWarning("[WeatherMonitorReadingService][IXmlFetcher] The request failed due to an issue getting a valid HTTP response");
                 return;
             }
-
-            var jsonString = _converter.ConvertXmlToJson(xml!);
-            var xmlRootDto = _deserializer.Deserialize(jsonString);
-
-            await InitializeMonitorAsync(xmlRootDto.Device);
-            await InitializeSensorsAsync(xmlRootDto.Device);
-            await InitializeSnapshotAsync(xmlRootDto.Device);
-
-            await MapAndStoreReadingsAsync(xmlRootDto);
-
-            _logger.LogInformation("[WeatherMonitorReadingService] Reading successful");
-            _lastUsedMonitor = _monitor;
+            catch (JsonException)
+            {
+                _logger.LogWarning("[WeatherMonitorReadingService][IJsonDeserializer] Deserialization failed");
+                return;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("[WeatherMonitorReadingService] Unhandled exception while processing the request {messsage}", ex.Message);
+                return;
+            }
         }
         /// <summary>
         /// Initializes WeatherMonitor field based on data in Dto
