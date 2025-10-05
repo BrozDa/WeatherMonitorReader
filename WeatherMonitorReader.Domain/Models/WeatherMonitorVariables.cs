@@ -18,14 +18,12 @@
         public TimeOnly Nautlen { get; set; }
         public TimeOnly Astrolen { get; set; }
         public int Moonphase { get; set; }
-        public bool IsDay {  get; set; }
-        public int Bio {  get; set; }
+        public bool IsDay { get; set; }
+        public int Bio { get; set; }
         public double PressureOld { get; set; }
-        public double TemperatureAvg {  get; set; }
+        public double TemperatureAvg { get; set; }
         public int Agl { get; set; }
         public int Fog { get; set; }
-        public int Lsp { get; set; }    
-
-
+        public int Lsp { get; set; }
     }
 }

@@ -1,15 +1,15 @@
-﻿using WeatherMonitorReader.Domain.Models;
-using WeatherMonitorReader.Domain.Dtos;
+﻿using WeatherMonitorReader.Domain.Dtos;
+using WeatherMonitorReader.Domain.Models;
 
 namespace WeatherMonitorReader.Infrastructure.Mappers
 {
     public static class WeatherMonitorVariableMapper
     {
-        public static WeatherMonitorVariables Map(WeatherMonitorVariablesDto dto, Guid snapshotId) {
-
+        public static WeatherMonitorVariables Map(WeatherMonitorVariablesDto dto, Guid snapshotId)
+        {
             var variables = new WeatherMonitorVariables();
 
-            if(TimeOnly.TryParse(dto.Sunrise, out TimeOnly sunrise)) 
+            if (TimeOnly.TryParse(dto.Sunrise, out TimeOnly sunrise))
                 variables.Sunrise = sunrise;
 
             if (TimeOnly.TryParse(dto.Sunset, out TimeOnly sunset))
@@ -23,7 +23,7 @@ namespace WeatherMonitorReader.Infrastructure.Mappers
 
             if (TimeOnly.TryParse(dto.Nautstart, out TimeOnly nautstart))
                 variables.Nautstart = nautstart;
-            
+
             if (TimeOnly.TryParse(dto.Nautend, out TimeOnly nautend))
                 variables.Nautend = nautend;
 
@@ -45,7 +45,7 @@ namespace WeatherMonitorReader.Infrastructure.Mappers
             if (TimeOnly.TryParse(dto.Astrolen, out TimeOnly astrolen))
                 variables.Astrolen = astrolen;
 
-            if(int.TryParse(dto.Moonphase, out int moonPhase))
+            if (int.TryParse(dto.Moonphase, out int moonPhase))
                 variables.Moonphase = moonPhase;
 
             if (int.TryParse(dto.IsDay, out int isDay))
@@ -73,7 +73,5 @@ namespace WeatherMonitorReader.Infrastructure.Mappers
 
             return variables;
         }
-
-        
     }
 }

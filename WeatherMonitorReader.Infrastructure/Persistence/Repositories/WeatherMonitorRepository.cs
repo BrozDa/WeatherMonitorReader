@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using WeatherMonitorReader.Domain.Models;
 using WeatherMonitorReader.Domain.Interfaces;
+using WeatherMonitorReader.Domain.Models;
 
 namespace WeatherMonitorReader.Infrastructure.Persistence.Repositories
 {
@@ -10,11 +10,14 @@ namespace WeatherMonitorReader.Infrastructure.Persistence.Repositories
         {
             return await dbContext.WeatherMonitors.FirstOrDefaultAsync(wm => wm.SerialNumber == serialNumber);
         }
-        public async Task<WeatherMonitor> AddMonitorAndSaveAsync(WeatherMonitor monitor) { 
+
+        public async Task<WeatherMonitor> AddMonitorAndSaveAsync(WeatherMonitor monitor)
+        {
             await dbContext.WeatherMonitors.AddAsync(monitor);
             await dbContext.SaveChangesAsync();
             return monitor;
         }
+
         public async Task<List<WeatherMonitorSensor>> GetSensors(WeatherMonitor monitor)
         {
             return await dbContext.WeatherMonitorSensors.Where(s => s.WeatherMonitorId == monitor.Id).ToListAsync();
@@ -27,14 +30,15 @@ namespace WeatherMonitorReader.Infrastructure.Persistence.Repositories
 
             return sensors;
         }
+
         public async Task<WeatherMonitorSensor> AddSensorAndSaveAsync(WeatherMonitorSensor sensor)
         {
             await dbContext.WeatherMonitorSensors.AddAsync(sensor);
             await dbContext.SaveChangesAsync();
 
             return sensor;
-
         }
+
         public async Task<WeatherMonitorSnapshot> AddSnapshotAndSaveAsync(WeatherMonitorSnapshot snapshot)
         {
             await dbContext.WeatherMonitorSnapshots.AddAsync(snapshot);
@@ -42,14 +46,17 @@ namespace WeatherMonitorReader.Infrastructure.Persistence.Repositories
 
             return snapshot;
         }
+
         public async Task AddSensorReadings(List<WeatherMonitorSensorReading> sensorReadings)
         {
             await dbContext.WeatherMonitorSensorReadings.AddRangeAsync(sensorReadings);
         }
+
         public async Task AddMinMaxReadings(List<WeatherMonitorSnapshotMinMax> minMaxReadings)
         {
             await dbContext.WeatherMonitorSnapshotMinMaxes.AddRangeAsync(minMaxReadings);
         }
+
         public async Task AddVariablesReadings(WeatherMonitorVariables variablesReading)
         {
             await dbContext.WeatherMonitorVariables.AddAsync(variablesReading);
@@ -63,8 +70,5 @@ namespace WeatherMonitorReader.Infrastructure.Persistence.Repositories
         //create sensor readings
         //create minMaxes
         //create variables
-
-
-
     }
 }

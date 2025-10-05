@@ -12,6 +12,7 @@ namespace WeatherMonitorReader.Infrastructure.Persistence
         public DbSet<WeatherMonitorVariables> WeatherMonitorVariables { get; set; } = null!;
 
         public DbSet<WeatherMonitorSensorReading> WeatherMonitorSensorReadings { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //1-to-m between Monitor and Sensors
@@ -59,7 +60,6 @@ namespace WeatherMonitorReader.Infrastructure.Persistence
                 .HasOne(ss => ss.WeatherMonitorVariables)
                 .WithOne(v => v.WeatherMonitorSnapshot)
                 .HasForeignKey<WeatherMonitorVariables>(fk => fk.WeatherMonitorSnapshotId);
-
         }
     }
 }

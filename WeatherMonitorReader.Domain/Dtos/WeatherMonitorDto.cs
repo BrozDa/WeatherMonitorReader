@@ -54,6 +54,5 @@ namespace WeatherMonitorReader.Domain.Dtos
 
         [JsonPropertyName("minmax")]
         public MinMaxRecordsDto MinMaxRecords { get; set; } = null!;
-
     }
 }

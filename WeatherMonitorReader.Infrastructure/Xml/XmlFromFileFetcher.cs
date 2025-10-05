@@ -1,10 +1,12 @@
 ﻿using System.Xml;
 using WeatherMonitorReader.Domain.Interfaces;
+
 namespace WeatherMonitorReader.Infrastructure.Xml
 {
     public class XmlFromFileFetcher(string filePath) : IXmlFetcher
     {
         private readonly string _filePath = filePath;
+
         public async Task<XmlDocument?> FetchXmlDocumentAsync()
         {
             try
@@ -18,10 +20,10 @@ namespace WeatherMonitorReader.Infrastructure.Xml
 
                 return document;
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return null;
             }
-            
         }
     }
 }

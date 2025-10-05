@@ -1,19 +1,18 @@
-﻿using WeatherMonitorReader.Domain.Models;
-using WeatherMonitorReader.Domain.Dtos;
+﻿using WeatherMonitorReader.Domain.Dtos;
+using WeatherMonitorReader.Domain.Models;
 
 namespace WeatherMonitorReader.Infrastructure.Mappers
 {
     public static class WeatherMonitorSnapshotMinMaxMapper
     {
-
         public static WeatherMonitorSnapshotMinMax Map(WeatherMonitorSnapshotMinMaxDto dto, Guid sensorId, Guid snapShotId)
         {
             var minMax = new WeatherMonitorSnapshotMinMax();
 
-            if(double.TryParse(dto.Min, out var min))
+            if (double.TryParse(dto.Min, out var min))
                 minMax.Min = min;
-            
-            if(double.TryParse(dto.Max, out var max))
+
+            if (double.TryParse(dto.Max, out var max))
                 minMax.Max = max;
 
             minMax.SensorId = sensorId;
@@ -21,6 +20,5 @@ namespace WeatherMonitorReader.Infrastructure.Mappers
 
             return minMax;
         }
-
     }
 }

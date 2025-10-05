@@ -1,10 +1,10 @@
-﻿using WeatherMonitorReader.Domain.Models;
+﻿using Microsoft.Extensions.Logging;
 using WeatherMonitorReader.Domain.Dtos;
 using WeatherMonitorReader.Domain.Enums;
 using WeatherMonitorReader.Domain.Interfaces;
+using WeatherMonitorReader.Domain.Models;
 using WeatherMonitorReader.Infrastructure.Mappers;
-using Microsoft.Extensions.Logging;
-using System.Threading;
+
 namespace WeatherMonitorReader.Application.Services
 {
     public class WeatherMonitorReadingService
@@ -39,11 +39,13 @@ namespace WeatherMonitorReader.Application.Services
             _monitorSensors = new();
             _snapShot = new();
         }
+
         public async Task ProcessAsync()
         {
             var xml = await _fetcher.FetchXmlDocumentAsync();
 
-            if (xml is null && _lastUsedMonitor is null) {
+            if (xml is null && _lastUsedMonitor is null)
+            {
                 _logger.LogCritical("[WeatherMonitorReadingService] Monitor down - no previously used monitor to reference");
                 return;
             }
@@ -66,9 +68,8 @@ namespace WeatherMonitorReader.Application.Services
 
             _logger.LogInformation("[WeatherMonitorReadingService] Reading successful");
             _lastUsedMonitor = _monitor;
-
-
         }
+
         private async Task InitializeMonitor(WeatherMonitorDto monitorDto)
         {
             var entity = await _repository.GetBySerialNumber(monitorDto.SerialNumber);
@@ -76,14 +77,14 @@ namespace WeatherMonitorReader.Application.Services
             if (entity is null)
             {
                 entity = await _repository
-                    .AddMonitorAndSaveAsync(WeatherMonitorMapper.MapMonitor(monitorDto));
+                    .AddMonitorAndSaveAsync(WeatherMonitorMapper.Map(monitorDto));
 
                 _logger.LogInformation("[WeatherMonitorReadingService] Created new monitor; Monitor ID: {id}", entity.Id);
 
                 _newMonitor = true;
             }
-            else if (entity.Firmware != monitorDto.Firmware) {
-
+            else if (entity.Firmware != monitorDto.Firmware)
+            {
                 entity.Firmware = monitorDto.Firmware;
                 await _repository.SaveAsync();
                 _logger.LogInformation("[WeatherMonitorReadingService] Update Firmware value for monitor ID: {id}", entity.Id);
@@ -91,21 +92,24 @@ namespace WeatherMonitorReader.Application.Services
 
             _monitor = entity;
         }
+
         private async Task InitializeSensors(WeatherMonitorDto monitorDto)
         {
             _monitorSensors = _newMonitor
                 ? await CreateAndStoreSensorsFromDto(monitorDto)
                 : await _repository.GetSensors(_monitor);
         }
+
         private async Task InitializeSnapshot(WeatherMonitorDto monitorDto)
         {
-            var snapShot = WeatherMonitorSnapshotMapper.MapSnapShot(monitorDto);
+            var snapShot = WeatherMonitorSnapshotMapper.Map(monitorDto);
 
             snapShot.WeatherMonitor = _monitor;
             snapShot.WeatherMonitorId = _monitor.Id;
 
             _snapShot = await _repository.AddSnapshotAndSaveAsync(snapShot);
         }
+
         private async Task MapAndStoreReadings(XmlRootDto reading)
         {
             //create sensor readings
@@ -123,30 +127,32 @@ namespace WeatherMonitorReader.Application.Services
             await _repository.AddVariablesReadings(variables);
             await _repository.SaveAsync();
         }
-        private async Task<List<WeatherMonitorSensor>> CreateAndStoreSensorsFromDto(WeatherMonitorDto dto) {
 
+        private async Task<List<WeatherMonitorSensor>> CreateAndStoreSensorsFromDto(WeatherMonitorDto dto)
+        {
             List<WeatherMonitorSensor> sensors = new();
 
-            foreach (var sensorDto in dto.Input.Sensors) {
+            foreach (var sensorDto in dto.Input.Sensors)
+            {
                 sensors.Add(
                     WeatherMonitorSensorMapper
-                    .MapSensor(sensorDto, SensorDirection.Input, _monitor.Id));
+                    .Map(sensorDto, SensorDirection.Input, _monitor.Id));
             }
             foreach (var sensorDto in dto.Output.Sensors)
             {
                 sensors.Add(
                     WeatherMonitorSensorMapper
-                    .MapSensor(sensorDto, SensorDirection.Output, _monitor.Id));
+                    .Map(sensorDto, SensorDirection.Output, _monitor.Id));
             }
 
             sensors = await _repository.AddSensorsAndSaveAsync(sensors);
             _logger.LogInformation("[WeatherMonitorReadingService] Created new sensors for monitor ID: {id}", _monitor.Id);
             return sensors;
-
         }
-        private async Task<WeatherMonitorSensor> CreateSingleSensor(WeatherMonitorSensorDto dto, SensorDirection direction) {
 
-            var sensor = WeatherMonitorSensorMapper.MapSensor(dto,direction,_monitor.Id);
+        private async Task<WeatherMonitorSensor> CreateSingleSensor(WeatherMonitorSensorDto dto, SensorDirection direction)
+        {
+            var sensor = WeatherMonitorSensorMapper.Map(dto, direction, _monitor.Id);
             sensor = await _repository.AddSensorAndSaveAsync(sensor);
 
             _logger.LogInformation("[WeatherMonitorReadingService] Created new sensor for existing monitor; " +
@@ -154,8 +160,9 @@ namespace WeatherMonitorReader.Application.Services
 
             return sensor;
         }
+
         private async Task<List<WeatherMonitorSensorReading>> CreateSensorReadings(
-            WeatherMonitorDto dto, 
+            WeatherMonitorDto dto,
             List<WeatherMonitorSensor> sensors)
         {
             var sensorIdMap = sensors.ToDictionary(x => x.SensorId.ToString(), x => x.Id);
@@ -163,10 +170,8 @@ namespace WeatherMonitorReader.Application.Services
 
             foreach (var sensorDto in dto.Input.Sensors)
             {
-
                 sensorReadings.Add(
                     await CreatedSensorReading(sensorIdMap, sensorDto, SensorDirection.Input));
-                
             }
             foreach (var sensorDto in dto.Output.Sensors)
             {
@@ -175,20 +180,17 @@ namespace WeatherMonitorReader.Application.Services
             }
 
             return sensorReadings;
-
-
         }
+
         private async Task<WeatherMonitorSensorReading> CreatedSensorReading(
-            Dictionary<string, Guid> sensorIdMap, 
-            WeatherMonitorSensorDto sensorDto, 
+            Dictionary<string, Guid> sensorIdMap,
+            WeatherMonitorSensorDto sensorDto,
             SensorDirection sensorDirection)
         {
-
             var reading = new WeatherMonitorSensorReading();
 
             if (!sensorIdMap.TryGetValue(sensorDto.Id, out var _))
             {
-
                 var newSensor = await CreateSingleSensor(sensorDto, SensorDirection.Output);
 
                 reading = WeatherMonitorSensorReadingMapper.Map(
@@ -199,7 +201,6 @@ namespace WeatherMonitorReader.Application.Services
             }
             else
             {
-
                 reading = WeatherMonitorSensorReadingMapper.Map(
                     sensorDto,
                     sensorIdMap[sensorDto.Id],
@@ -208,12 +209,13 @@ namespace WeatherMonitorReader.Application.Services
             }
             return reading;
         }
+
         private List<WeatherMonitorSnapshotMinMax> CreateMinMaxReadings(MinMaxRecordsDto minMaxRecords, List<WeatherMonitorSensor> sensors)
         {
             var sensorMap = sensors.ToDictionary(x => x.SensorId.ToString(), x => x);
             var minMaxReadings = new List<WeatherMonitorSnapshotMinMax>();
 
-            foreach(var minMaxDto in minMaxRecords.MinMaxRecords)
+            foreach (var minMaxDto in minMaxRecords.MinMaxRecords)
             {
                 minMaxReadings.Add(
                      WeatherMonitorSnapshotMinMaxMapper
@@ -222,12 +224,9 @@ namespace WeatherMonitorReader.Application.Services
                          sensorMap[minMaxDto.SensorId].Id,
                          _snapShot.Id
                      ));
-
             }
 
             return minMaxReadings;
-
         }
-
     }
 }

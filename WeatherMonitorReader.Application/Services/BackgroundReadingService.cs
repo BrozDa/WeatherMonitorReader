@@ -2,12 +2,12 @@
 
 namespace WeatherMonitorReader.Application.Services
 {
+
     public class BackgroundReadingService(
         WeatherMonitorReadingService service,
         int runInterval
         ) : BackgroundService
     {
-
         private readonly WeatherMonitorReadingService _service = service;
         private readonly int _runInterval = runInterval;
 

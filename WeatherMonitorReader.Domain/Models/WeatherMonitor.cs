@@ -13,11 +13,11 @@ namespace WeatherMonitorReader.Domain.Models
 
         public string Model { get; set; } = string.Empty;
 
-        public string Firmware {  get; set; } = string.Empty;
+        public string Firmware { get; set; } = string.Empty;
 
-        public string Language {  get; set; } = string.Empty;
+        public string Language { get; set; } = string.Empty;
 
-        public string PressureType {  get; set; } = string.Empty;
+        public string PressureType { get; set; } = string.Empty;
         public string R { get; set; } = string.Empty;
         public string Bip { get; set; } = string.Empty;
 
@@ -40,5 +40,4 @@ namespace WeatherMonitorReader.Domain.Models
             };
         }
     }
-
 }

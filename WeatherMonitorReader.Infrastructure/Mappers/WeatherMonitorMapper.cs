@@ -1,11 +1,11 @@
-﻿using WeatherMonitorReader.Domain.Models;
-using WeatherMonitorReader.Domain.Dtos;
+﻿using WeatherMonitorReader.Domain.Dtos;
+using WeatherMonitorReader.Domain.Models;
 
 namespace WeatherMonitorReader.Infrastructure.Mappers
 {
     public static class WeatherMonitorMapper
     {
-        public static WeatherMonitor MapMonitor(WeatherMonitorDto dto)
+        public static WeatherMonitor Map(WeatherMonitorDto dto)
         {
             WeatherMonitor monitor = new WeatherMonitor()
             {

@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Xml;
+﻿using System.Xml;
 using WeatherMonitorReader.Domain.Interfaces;
 
 namespace WeatherMonitorReader.Infrastructure.Xml
@@ -7,9 +6,9 @@ namespace WeatherMonitorReader.Infrastructure.Xml
     public class HttpXmlFetcher(string url) : IXmlFetcher
     {
         private readonly string _url = url;
+
         public async Task<XmlDocument?> FetchXmlDocumentAsync()
         {
-            
             var responseString = await GetResponseString(_url);
 
             var xmlDocument = new XmlDocument();
@@ -26,7 +25,5 @@ namespace WeatherMonitorReader.Infrastructure.Xml
 
             return await response.Content.ReadAsStringAsync();
         }
-
-        
     }
 }

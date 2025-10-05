@@ -1,5 +1,4 @@
-﻿
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.Xml;
 using WeatherMonitorReader.Domain.Interfaces;
 

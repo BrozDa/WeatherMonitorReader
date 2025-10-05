@@ -6,12 +6,10 @@ namespace WeatherMonitorReader.Infrastructure.Json
 {
     public class JsonDeserializer : IJsonDeserializer
     {
-
         public XmlRootDto Deserialize(string rawJson)
         {
             var result = JsonSerializer.Deserialize<XmlRootDto>(rawJson);
             return result;
-
         }
     }
 }

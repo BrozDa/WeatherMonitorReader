@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
 namespace WeatherMonitorReader.Infrastructure.Persistence
@@ -8,7 +8,6 @@ namespace WeatherMonitorReader.Infrastructure.Persistence
     {
         public WeatherMonitorContext CreateDbContext(string[] args)
         {
-
             var config = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json")

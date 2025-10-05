@@ -18,6 +18,5 @@ namespace WeatherMonitorReader.Domain.Dtos
 
         [JsonPropertyName("value")]
         public string Value { get; set; } = string.Empty;
-
     }
 }

@@ -13,12 +13,11 @@ namespace WeatherMonitorReader.Infrastructure.Mappers
             reading.SnapshotId = snapshotId;
 
             reading.Place = dto.Place;
-            
+
             if (double.TryParse(dto.Value, out double value))
                 reading.Value = value;
 
             return reading;
         }
-
     }
 }

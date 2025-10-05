@@ -8,4 +8,3 @@ namespace WeatherMonitorReader.Domain.Dtos
         public List<WeatherMonitorSnapshotMinMaxDto> MinMaxRecords { get; set; } = null!;
     }
 }
-

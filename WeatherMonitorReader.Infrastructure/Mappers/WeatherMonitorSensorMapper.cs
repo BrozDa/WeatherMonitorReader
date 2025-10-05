@@ -1,12 +1,12 @@
-﻿using WeatherMonitorReader.Domain.Enums;
+﻿using WeatherMonitorReader.Domain.Dtos;
+using WeatherMonitorReader.Domain.Enums;
 using WeatherMonitorReader.Domain.Models;
-using WeatherMonitorReader.Domain.Dtos;
 
 namespace WeatherMonitorReader.Infrastructure.Mappers
 {
     public static class WeatherMonitorSensorMapper
     {
-        public static WeatherMonitorSensor MapSensor(WeatherMonitorSensorDto dto, SensorDirection direction, Guid monitorId)
+        public static WeatherMonitorSensor Map(WeatherMonitorSensorDto dto, SensorDirection direction, Guid monitorId)
         {
             int.TryParse(dto.Id, out int sensorId);
 
@@ -15,10 +15,10 @@ namespace WeatherMonitorReader.Infrastructure.Mappers
                 Type = dto.Type,
                 Name = dto.Name,
                 Direction = direction,
-                Place=dto.Place,
+                Place = dto.Place,
             };
 
-            if(int.TryParse(dto.Id, out sensorId))
+            if (int.TryParse(dto.Id, out sensorId))
                 sensor.SensorId = sensorId;
 
             sensor.WeatherMonitorId = monitorId;
