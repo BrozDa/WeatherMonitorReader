@@ -30,7 +30,7 @@ namespace WeatherMonitorReader.Application.Services
                 _logger.LogInformation("[BackgroundReadingService] {time} Request initiated", DateTime.UtcNow);
                 await _service.ProcessAsync();
                 _logger.LogInformation("[BackgroundReadingService] {time} Request finised", DateTime.UtcNow);
-                await Task.Delay(TimeSpan.FromMinutes(_runInterval), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(_runInterval), stoppingToken);
             }
         }
     }
