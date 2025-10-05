@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace WeatherMonitorReader.Application.Services
 {
@@ -9,10 +10,12 @@ namespace WeatherMonitorReader.Application.Services
     /// <param name="runInterval">A <see cref="int"/> defining frequency in minutes</param>
     public class BackgroundReadingService(
         WeatherMonitorReadingService service,
+        ILogger<BackgroundReadingService> logger,
         int runInterval
         ) : BackgroundService
     {
         private readonly WeatherMonitorReadingService _service = service;
+        private readonly ILogger<BackgroundReadingService> _logger = logger;
         private readonly int _runInterval = runInterval;
 
         /// <summary>
@@ -24,7 +27,9 @@ namespace WeatherMonitorReader.Application.Services
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                _logger.LogInformation("[BackgroundReadingService] {time} Request initiated", DateTime.UtcNow);
                 await _service.ProcessAsync();
+                _logger.LogInformation("[BackgroundReadingService] {time} Request finised", DateTime.UtcNow);
                 await Task.Delay(TimeSpan.FromMinutes(_runInterval), stoppingToken);
             }
         }

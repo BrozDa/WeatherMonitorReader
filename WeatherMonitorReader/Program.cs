@@ -19,9 +19,19 @@ namespace WeatherMonitorReader
             var hostBuilder = CreateBuilder();
             var host = hostBuilder.Build();
 
+            await SetupDatabase(host);
+
             await host.RunAsync();
         }
 
+        private static async Task SetupDatabase(IHost host)
+        {
+            using var services = host.Services.CreateScope();
+
+            var context = services.ServiceProvider.GetService<WeatherMonitorContext>();
+
+            await context!.Database.EnsureCreatedAsync();
+        }
         public static IHostBuilder CreateBuilder()
         {
             /*
@@ -32,12 +42,6 @@ namespace WeatherMonitorReader
 
             var builder = Host.CreateDefaultBuilder();
 
-            builder.ConfigureLogging(logging =>
-            {
-                logging.AddConsole();
-                logging.SetMinimumLevel(LogLevel.Information);
-            });
-
             builder.ConfigureAppConfiguration(cfg =>
             {
                 cfg.SetBasePath(Directory.GetCurrentDirectory());
@@ -45,6 +49,14 @@ namespace WeatherMonitorReader
                 cfg.AddEnvironmentVariables();
                 cfg.Build();
             });
+
+            builder.ConfigureLogging((context,logging) =>
+            {
+                logging.AddConsole();
+                logging.SetMinimumLevel(LogLevel.Information);
+                logging.AddConfiguration(context.Configuration.GetSection("Logging"));
+            });
+
 
             builder.ConfigureServices((context, services) =>
             {
@@ -66,6 +78,7 @@ namespace WeatherMonitorReader
                 services.AddHostedService(provider =>
                     new BackgroundReadingService(
                         provider.GetRequiredService<WeatherMonitorReadingService>(),
+                        provider.GetRequiredService<ILogger<BackgroundReadingService>>(),
                         interval));
             });
 
