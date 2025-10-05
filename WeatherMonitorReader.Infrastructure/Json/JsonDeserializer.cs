@@ -16,7 +16,7 @@ namespace WeatherMonitorReader.Infrastructure.Json
         public XmlRootDto Deserialize(string rawJson)
         {
             var result = JsonSerializer.Deserialize<XmlRootDto>(rawJson);
-            return result;
+            return result!;
         }
     }
 }
