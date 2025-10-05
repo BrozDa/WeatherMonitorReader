@@ -10,7 +10,7 @@ using WeatherMonitorReader.Infrastructure.Persistence;
 using WeatherMonitorReader.Infrastructure.Persistence.Repositories;
 using WeatherMonitorReader.Infrastructure.Xml;
 
-namespace WeatherMonitorReader
+namespace WeatherMonitorReader.Console
 {
     internal class Program
     {

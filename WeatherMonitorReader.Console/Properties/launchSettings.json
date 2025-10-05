@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "WeatherMonitorReader.Console": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

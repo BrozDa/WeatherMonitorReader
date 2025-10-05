@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35514.174
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherMonitorReader.Console", "WeatherMonitorReader\WeatherMonitorReader.Console.csproj", "{2A1FD423-1A4F-4B1C-B6DC-DFFF49CE6367}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherMonitorReader.Console", "WeatherMonitorReader.Console\WeatherMonitorReader.Console.csproj", "{2A1FD423-1A4F-4B1C-B6DC-DFFF49CE6367}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherMonitorReader.Domain", "WeatherMonitorReader.Domain\WeatherMonitorReader.Domain.csproj", "{89630C58-5F53-4250-AB41-C8DCB083F2F2}"
 EndProject
