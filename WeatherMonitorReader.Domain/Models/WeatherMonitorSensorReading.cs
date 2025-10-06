@@ -9,6 +9,6 @@
         public Guid SnapshotId { get; set; }
         public WeatherMonitorSnapshot Snapshot { get; set; } = null!;
         public string? Place { get; set; }
-        public double? Value { get; set; }
+        public string? Value { get; set; }
     }
 }
