@@ -1,0 +1,19 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest 
+    ports: 
+      - "1433:1433"
+    volumes:
+      - dbdata:/var/opt/mssql:rw
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=WeatherM0nitor!
+  monitor-reader:
+    build: ./
+    depends_on:
+      - db
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=db;Database=WeatherMonitor;User Id=sa;Password=WeatherM0nitor!;TrustServerCertificate=True;
+      - ReaderSettings__Url=http://192.168.0.129:5167/api/monitor
+volumes:
+  dbdata:
