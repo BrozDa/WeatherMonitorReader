@@ -24,6 +24,8 @@ The application processes data on startup and then repeats at a configurable int
 - Docker & Docker Compose
 
 ### Demo
+(Runs Database, Reader and very simplistic API providing weather station output)
+
 1. Clone the repository:
    ```PowerShell
    git clone https://github.com/BrozDa/WeatherMonitorReader.git
