@@ -63,6 +63,7 @@ docker container run `
 -e "ReaderSettings__Interval=10" `
 --network monitor-net `
 --name reader `
+broziss/weather-monitor-reader
 ```
 ## Database Schema
 <img width="898" height="795" alt="obrazek" src="https://github.com/user-attachments/assets/fb85eb28-00c9-4fa6-9606-1291a7a46431" />
