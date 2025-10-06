@@ -17,17 +17,14 @@ namespace WeatherMonitorReader.Infrastructure.Mappers
         /// <returns>A mapped <see cref="WeatherMonitorSensorReading"/></returns>
         public static WeatherMonitorSensorReading Map(WeatherMonitorSensorDto dto, Guid sensorId, Guid snapshotId)
         {
-            var reading = new WeatherMonitorSensorReading();
 
-            reading.SensorId = sensorId;
-            reading.SnapshotId = snapshotId;
-
-            reading.Place = dto.Place;
-
-            if (double.TryParse(dto.Value, out double value))
-                reading.Value = value;
-
-            return reading;
+            return new WeatherMonitorSensorReading()
+            {
+                SensorId = sensorId,
+                SnapshotId = snapshotId,
+                Place = dto.Place,
+                Value = dto.Value,
+            };
         }
     }
 }
