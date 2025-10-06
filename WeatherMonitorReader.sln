@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherMonitorReader.Infras
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherMonitorReader.Application", "WeatherMonitorReader.Application\WeatherMonitorReader.Application.csproj", "{708D2373-7A86-4B1B-A479-DC066C0768EB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherMonitor.DemoApi", "WeatherMonitor.DemoApi\WeatherMonitor.DemoApi.csproj", "{6F9E4CCA-D913-4771-BBA2-A9D82DD984E0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{708D2373-7A86-4B1B-A479-DC066C0768EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{708D2373-7A86-4B1B-A479-DC066C0768EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{708D2373-7A86-4B1B-A479-DC066C0768EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F9E4CCA-D913-4771-BBA2-A9D82DD984E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F9E4CCA-D913-4771-BBA2-A9D82DD984E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F9E4CCA-D913-4771-BBA2-A9D82DD984E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F9E4CCA-D913-4771-BBA2-A9D82DD984E0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
