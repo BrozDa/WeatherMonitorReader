@@ -146,9 +146,15 @@ namespace WeatherMonitorReader.Application.Services
         /// </remarks>
         private async Task InitializeSensorsAsync(WeatherMonitorDto monitorDto)
         {
-            _monitorSensors = _newMonitor
-                ? await CreateAndStoreSensorsFromDtoAsync(monitorDto)
-                : await _repository.GetSensors(_monitor);
+            if (_newMonitor)
+            {
+                _monitorSensors = await CreateAndStoreSensorsFromDtoAsync(monitorDto);
+                _newMonitor = false;
+            }
+            else
+            {
+                _monitorSensors= await _repository.GetSensors(_monitor);
+            }
         }
         /// <summary>
         /// Initializes new reading snapshot based on data in Dto and stores it to Db
