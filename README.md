@@ -23,8 +23,7 @@ The application processes data on startup and then repeats at a configurable int
 ### Requirements
 - Docker & Docker Compose
 
-### Demo
-(Runs Database, Reader and very simplistic API providing weather station output)
+### Demo - Runs Database, Reader and very simplistic API providing weather station output
 
 1. Clone the repository:
    ```PowerShell
@@ -49,7 +48,7 @@ The application processes data on startup and then repeats at a configurable int
 Note: Container names may vary depending on your Docker Compose setup.
 
 
-### Running the App Separately
+### Running the reader separately
 
 You can run the application using the Docker image available on Docker Hub: [broziss/weather-monitor-reader](https://hub.docker.com/repository/docker/broziss/weather-monitor-reader/general).
 To do this, you need to set three environment variables:
