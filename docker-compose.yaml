@@ -4,16 +4,30 @@ services:
     ports: 
       - "1433:1433"
     volumes:
-      - dbdata:/var/opt/mssql:rw
+      - monitor-db:/var/opt/mssql:rw
     environment:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=WeatherM0nitor!
+    networks:
+      - monitor-net
   monitor-reader:
     build: ./
     depends_on:
       - db
     environment:
       - ConnectionStrings__DefaultConnection=Server=db;Database=WeatherMonitor;User Id=sa;Password=WeatherM0nitor!;TrustServerCertificate=True;
-      - ReaderSettings__Url=http://192.168.0.129:5167/api/monitor
+      - ReaderSettings__Url=http://monitor-api:8080/monitor/api
+      - ReaderSettings__Interval=5
+    networks:
+      - monitor-net
+  monitor-api:
+    build: ./WeatherMonitor.DemoApi
+    ports: 
+      - "7000:8080"
+    networks:
+      - monitor-net
 volumes:
-  dbdata:
+  monitor-db:
+
+networks:
+  monitor-net:
