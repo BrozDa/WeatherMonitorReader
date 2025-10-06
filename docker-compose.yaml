@@ -11,7 +11,7 @@ services:
     networks:
       - monitor-net
   monitor-reader:
-    build: ./
+    image: broziss/weather-monitor-reader 
     depends_on:
       - db
     environment:
